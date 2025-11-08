@@ -2,6 +2,7 @@ import { type Student, type InsertStudent, type Attendance, type InsertAttendanc
 import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
+import { broadcastAttendanceUpdate, broadcastAttendanceDelete, broadcastClassUpdate, broadcastClassDelete, broadcastStudentUpdate, broadcastStudentDelete } from './websocket';
 
 const DATA_FILE = path.join(process.cwd(), "data", "attendance_data.json");
 
@@ -167,6 +168,7 @@ export class MemStorage implements IStorage {
     };
     this.classes.set(id, newClass);
     this.saveData();
+    broadcastClassUpdate(newClass);
     return newClass;
   }
 
@@ -198,6 +200,11 @@ export class MemStorage implements IStorage {
     if (deleted) {
       console.log(`✅ Deleted class "${classToDelete.name}" with ${studentsInClass.length} students and ${attendanceInClass.length} attendance records`);
       this.saveData();
+      broadcastClassDelete(id);
+      // Broadcast student deletions
+      studentsInClass.forEach(([studentId]) => broadcastStudentDelete(studentId));
+      // Broadcast attendance deletions
+      attendanceInClass.forEach(([attId]) => broadcastAttendanceDelete(attId));
     }
     return deleted;
   }
@@ -222,6 +229,7 @@ export class MemStorage implements IStorage {
     };
     this.students.set(id, student);
     this.saveData();
+    broadcastStudentUpdate(student);
     return student;
   }
 
@@ -243,6 +251,9 @@ export class MemStorage implements IStorage {
     if (deleted) {
       console.log(`✅ Deleted student "${student.name}" with ${attendanceForStudent.length} attendance records`);
       this.saveData();
+      broadcastStudentDelete(id);
+      // Broadcast attendance deletions
+      attendanceForStudent.forEach(([attId]) => broadcastAttendanceDelete(attId));
     }
     return deleted;
   }
@@ -289,6 +300,7 @@ export class MemStorage implements IStorage {
 
     this.attendance.set(id, attendance);
     this.saveData();
+    broadcastAttendanceUpdate(attendance);
     return attendance;
   }
 

@@ -1,13 +1,20 @@
 [build]
   command = "npm run build"
-  publish = "dist"
+  publish = "dist/public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/ws/*"
+  to = "/.netlify/functions/websocket"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
 
-# Headers for WebSocket support (if needed)
 [[headers]]
   for = "/*"
   [headers.values]
@@ -15,3 +22,8 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' wss: ws: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+[functions]
+  external_node_modules = ["ws"]

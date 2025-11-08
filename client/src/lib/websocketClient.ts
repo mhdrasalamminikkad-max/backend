@@ -5,7 +5,12 @@
 
 import { queryClient } from './queryClient';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:5000';
+// In production, convert http/https to ws/wss
+const WS_URL = import.meta.env.VITE_WS_URL || (() => {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = import.meta.env.PROD ? window.location.host : 'localhost:5000';
+  return `${protocol}//${host}`;
+})();
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
