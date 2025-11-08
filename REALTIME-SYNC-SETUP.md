@@ -147,3 +147,4 @@ const RECONNECT_DELAY = 3000; // 3 seconds
 ✅ **Better UX**: Instant feedback when changes are made  
 ✅ **Offline Support**: Falls back to LocalStorage if backend is unavailable  
 
+

@@ -34,7 +34,7 @@ export default function ClassSelection({ prayer, onClassSelect, onBack, title }:
       // const { fetchClassesFromFirestore } = await import("@/lib/firebaseSync");
       // await fetchClassesFromFirestore();
       const { getClasses } = await import("@/lib/offlineApi");
-      return getClasses();
+      return await getClasses();
     },
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -49,10 +49,10 @@ export default function ClassSelection({ prayer, onClassSelect, onBack, title }:
       // await fetchStudentsFromFirestore();
       const { getStudentsByClass } = await import("@/lib/offlineApi");
       const studentsMap: Record<string, any[]> = {};
-      classes.forEach((cls) => {
-        const students = getStudentsByClass(cls.name);
+      for (const cls of classes) {
+        const students = await getStudentsByClass(cls.name);
         studentsMap[cls.name] = students;
-      });
+      }
       return studentsMap;
     },
     enabled: classes.length > 0,
@@ -96,10 +96,10 @@ export default function ClassSelection({ prayer, onClassSelect, onBack, title }:
       setNewClassName("");
       setDialogOpen(false);
       
-      // Get fresh classes from LocalStorage (includes the newly created one)
+      // Get fresh classes from backend/LocalStorage (includes the newly created one)
       const { getClasses } = await import("@/lib/offlineApi");
-      const currentClasses = getClasses();
-      console.log(`📋 Classes in LocalStorage after create: ${currentClasses.length} total`);
+      const currentClasses = await getClasses();
+      console.log(`📋 Classes after create: ${currentClasses.length} total`);
       console.log(`   Classes: ${currentClasses.map(c => c.name).join(', ')}`);
       
       // CRITICAL: Directly update the query cache with fresh data from LocalStorage
@@ -133,7 +133,7 @@ export default function ClassSelection({ prayer, onClassSelect, onBack, title }:
       console.log(`🔄 Deleting class with ID: ${classId}`);
       
       // Get class name BEFORE deletion (needed for Firebase cleanup)
-      const classes = getClasses();
+      const classes = await getClasses();
       const classToDelete = classes.find(c => c.id === classId);
       
       if (!classToDelete) {
@@ -143,37 +143,31 @@ export default function ClassSelection({ prayer, onClassSelect, onBack, title }:
       const className = classToDelete.name;
       console.log(`📋 Found class "${className}" to delete`);
       
-      // TODO: Replace with backend API call when implementing new backend
-      // const { deleteClassFromFirestore } = await import("@/lib/firebaseSync");
-      // await deleteClassFromFirestore(classId, className);
-      
-      // Delete locally after Firebase (so we had the class info)
-      const deleted = deleteClass(classId);
+      // Delete from backend/LocalStorage
+      const deleted = await deleteClass(classId);
       if (!deleted) {
-        throw new Error("Failed to delete class locally");
+        throw new Error("Failed to delete class");
       }
       
-      console.log(`✅ Class "${className}" deleted locally`);
+      console.log(`✅ Class "${className}" deleted successfully`);
       
       return { deleted, className };
     },
     onSuccess: async () => {
       // Refresh classes immediately
       const { getClasses } = await import("@/lib/offlineApi");
-      const currentClasses = getClasses();
+      const currentClasses = await getClasses();
+      
+      // CRITICAL: Directly update the query cache with fresh data
       queryClient.setQueryData(["classes"], currentClasses);
       
       // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ["classes"] });
-      queryClient.invalidateQueries({ queryKey: ["class-students"] });
-      queryClient.invalidateQueries({ queryKey: ["students"] });
+      await queryClient.invalidateQueries({ queryKey: ["classes"] });
+      await queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      await queryClient.invalidateQueries({ queryKey: ["students"] });
       
-      // TODO: Replace with backend API call when implementing new backend
-      // const { fetchClassesFromFirestore, fetchStudentsFromFirestore } = await import("@/lib/firebaseSync");
-      // await Promise.all([
-      //   fetchClassesFromFirestore(),
-      //   fetchStudentsFromFirestore()
-      // ]);
+      // Force immediate refetch
+      await queryClient.refetchQueries({ queryKey: ["classes"] });
       
       toast({
         title: "✅ Success",

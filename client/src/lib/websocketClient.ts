@@ -5,11 +5,16 @@
 
 import { queryClient } from './queryClient';
 
-// In production, convert http/https to ws/wss
+// WebSocket URL - use environment variable or construct from API URL
 const WS_URL = import.meta.env.VITE_WS_URL || (() => {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = import.meta.env.PROD ? window.location.host : 'localhost:5000';
-  return `${protocol}//${host}`;
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  // Convert http:// to ws:// and https:// to wss://
+  if (apiUrl.startsWith('https://')) {
+    return apiUrl.replace('https://', 'wss://');
+  } else if (apiUrl.startsWith('http://')) {
+    return apiUrl.replace('http://', 'ws://');
+  }
+  return 'ws://localhost:5000';
 })();
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
@@ -111,4 +116,5 @@ export function disconnectWebSocket(): void {
 export function isWebSocketConnected(): boolean {
   return ws !== null && ws.readyState === WebSocket.OPEN;
 }
+
 

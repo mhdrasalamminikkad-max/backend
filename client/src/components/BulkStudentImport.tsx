@@ -88,15 +88,16 @@ export default function BulkStudentImport({ className, onSuccess }: BulkStudentI
         }
 
         try {
-          createStudent(name, className, rollNumber || undefined);
+          await createStudent(name, className, rollNumber || undefined);
           successCount++;
+          console.log(`✅ Imported student: ${name}`);
         } catch (error: any) {
           errorCount++;
           const errorMsg = error.message || "Unknown error";
           errors.push(`${name}: ${errorMsg}`);
           
           // Log but don't stop processing
-          console.warn(`Failed to import student "${name}":`, errorMsg);
+          console.warn(`❌ Failed to import student "${name}":`, errorMsg);
         }
       }
 
@@ -107,7 +108,11 @@ export default function BulkStudentImport({ className, onSuccess }: BulkStudentI
           description: `Imported ${successCount} student(s)${errorCount > 0 ? `. ${errorCount} error(s) occurred.` : ""}`,
         });
         
+        console.log(`✅ Bulk import complete: ${successCount} students imported for class "${className}"`);
+        
+        // Call onSuccess callback to refresh the UI
         if (onSuccess) {
+          console.log('Calling onSuccess callback to refresh student list...');
           onSuccess();
         }
       } else {

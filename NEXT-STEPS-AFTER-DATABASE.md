@@ -148,3 +148,4 @@ VITE_APPWRITE_DATABASE_ID=your-database-id-here
 **Important:** Collection IDs are case-sensitive!
 
 
+

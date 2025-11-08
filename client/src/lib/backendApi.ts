@@ -3,7 +3,9 @@
  * Simple API client for the local Node.js backend
  */
 
+// Get API base URL from environment or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL = `${API_BASE_URL}/api`;
 
 // Types
 export interface Class {
@@ -143,4 +145,5 @@ export async function getSummary(filters?: {
   const query = params.toString();
   return apiFetch<Record<string, Record<string, AttendanceRecord[]>>>(`/api/summary${query ? '?' + query : ''}`);
 }
+
 

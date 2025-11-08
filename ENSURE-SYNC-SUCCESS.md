@@ -76,3 +76,4 @@ Then check Appwrite Console - you should see all your data there!
 **Just refresh your browser and let it sync - it will take 5-7 minutes but will complete successfully!**
 
 
+

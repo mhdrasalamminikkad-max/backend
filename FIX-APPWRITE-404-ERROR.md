@@ -170,3 +170,5 @@ VITE_APPWRITE_ENDPOINT=https://nyc.cloud.appwrite.io
 
 Then restart your dev server and test again.
 
+
+

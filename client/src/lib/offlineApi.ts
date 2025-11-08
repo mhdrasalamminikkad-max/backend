@@ -90,7 +90,7 @@ export async function removeDuplicateStudents(): Promise<number> {
  * This runs automatically when the app first loads
  * Only initializes if no classes/students exist (won't overwrite existing data)
  */
-export function initializeSeedData(): void {
+export async function initializeSeedData(): Promise<void> {
   // Check if already initialized
   const isInitialized = localStorage.getItem(INITIALIZED_KEY);
   
@@ -100,7 +100,7 @@ export function initializeSeedData(): void {
   }
   
   // Check if there are existing classes (might have been loaded from Firebase)
-  const existingClasses = getClasses();
+  const existingClasses = await getClasses();
   if (existingClasses.length > 0) {
     console.log(`✅ Found ${existingClasses.length} existing class(es) - skipping seed data initialization`);
     // Mark as initialized so we don't run this again
@@ -114,17 +114,17 @@ export function initializeSeedData(): void {
   let totalStudents = 0;
   
   // Load each class and its students
-  DEFAULT_CLASSES.forEach(seedClass => {
+  for (const seedClass of DEFAULT_CLASSES) {
     try {
       // Create the class
-      const newClass = createClass(seedClass.name);
+      const newClass = await createClass(seedClass.name);
       totalClasses++;
       console.log(`✅ Created class: ${newClass.name}`);
       
       // Add all students to this class
-      seedClass.students.forEach(seedStudent => {
+      for (const seedStudent of seedClass.students) {
         try {
-          createStudent(
+          await createStudent(
             seedStudent.name,
             newClass.name,
             seedStudent.rollNumber
@@ -133,11 +133,11 @@ export function initializeSeedData(): void {
         } catch (error) {
           console.warn(`⚠️ Could not add student ${seedStudent.name}:`, error);
         }
-      });
+      }
     } catch (error) {
       console.warn(`⚠️ Could not create class ${seedClass.name}:`, error);
     }
-  });
+  }
   
   // Mark as initialized
   localStorage.setItem(INITIALIZED_KEY, 'true');

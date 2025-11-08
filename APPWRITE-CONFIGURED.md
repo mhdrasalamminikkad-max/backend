@@ -39,7 +39,7 @@ npm run dev
 ```
 🔧 Appwrite Configuration: { endpoint: ..., projectId: ..., databaseId: ... }
 ✅ Appwrite initialized successfully
-   Endpoint: https://nyc.cloud.appwrite.io/v1
+   Endpoint: <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">
    Project ID: 690b478e...
    Database ID: 690c86d2...
 ✅ Classes real-time sync active
@@ -120,4 +120,6 @@ Your Appwrite configuration is now complete with the exact values from your Appw
 **Restart your dev server and test the connection!**
 
 If you see any errors, check the browser console and share the error message.
+
+
 

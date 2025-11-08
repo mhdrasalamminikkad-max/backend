@@ -41,7 +41,7 @@ export default function AttendanceList({ prayer, className, onBack }: Attendance
       // const { fetchStudentsFromFirestore } = await import("@/lib/firebaseSync");
       // await fetchStudentsFromFirestore();
       const { getStudentsByClass } = await import("@/lib/offlineApi");
-      const studentsList = getStudentsByClass(className);
+      const studentsList = await getStudentsByClass(className);
       console.log(`📚 Found ${studentsList.length} student(s) for class "${className}":`, studentsList.map(s => s.name).join(', '));
       return studentsList;
     },
@@ -75,26 +75,17 @@ export default function AttendanceList({ prayer, className, onBack }: Attendance
       return newStudent;
     },
     onSuccess: async () => {
-      // Get fresh students from LocalStorage (includes the newly created one)
+      // Get fresh students from backend/LocalStorage (includes the newly created one)
       const { getStudentsByClass } = await import("@/lib/offlineApi");
-      const currentStudents = getStudentsByClass(className);
+      const currentStudents = await getStudentsByClass(className);
       
-      // CRITICAL: Directly update the query cache with fresh data from LocalStorage
+      // CRITICAL: Directly update the query cache with fresh data
       // This ensures the UI shows the new student IMMEDIATELY without waiting for refetch
       queryClient.setQueryData(["students", className], currentStudents);
       
       // Invalidate queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ["students", className] });
-      queryClient.invalidateQueries({ queryKey: ["class-students"] });
-      
-      // TODO: Replace with backend API call when implementing new backend
-      // const { fetchStudentsFromFirestore } = await import("@/lib/firebaseSync");
-      // await fetchStudentsFromFirestore();
-      // After backend merge, update cache with latest merged data
-      const updatedStudents = getStudentsByClass(className);
-      queryClient.setQueryData(["students", className], updatedStudents);
-      queryClient.invalidateQueries({ queryKey: ["students", className] });
-      queryClient.invalidateQueries({ queryKey: ["class-students"] });
+      await queryClient.invalidateQueries({ queryKey: ["students", className] });
+      await queryClient.invalidateQueries({ queryKey: ["class-students"] });
       
       setNewStudentName("");
       setNewStudentRollNumber("");
@@ -403,12 +394,25 @@ export default function AttendanceList({ prayer, className, onBack }: Attendance
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mt-6">
               <BulkStudentImport 
                 className={className}
-                onSuccess={() => {
-                  console.log('BulkStudentImport onSuccess called, invalidating queries...');
-                  queryClient.invalidateQueries({ queryKey: ["students", className] });
-                  queryClient.invalidateQueries({ queryKey: ["class-students"] });
-                  // Force refetch
-                  queryClient.refetchQueries({ queryKey: ["students", className] });
+                onSuccess={async () => {
+                  console.log('🔄 BulkStudentImport onSuccess called, refreshing student list...');
+                  
+                  // Get fresh students from backend/LocalStorage
+                  const { getStudentsByClass } = await import("@/lib/offlineApi");
+                  const currentStudents = await getStudentsByClass(className);
+                  
+                  // CRITICAL: Directly update the query cache with fresh data
+                  queryClient.setQueryData(["students", className], currentStudents);
+                  
+                  // Invalidate all student-related queries
+                  await queryClient.invalidateQueries({ queryKey: ["students"] });
+                  await queryClient.invalidateQueries({ queryKey: ["students", className] });
+                  await queryClient.invalidateQueries({ queryKey: ["class-students", className] });
+                  
+                  // Force immediate refetch
+                  await queryClient.refetchQueries({ queryKey: ["students", className] });
+                  
+                  console.log(`✅ Student list refreshed after bulk import: ${currentStudents.length} students`);
                 }}
               />
               <span className="text-white/80 text-sm">or use the + button above</span>
