@@ -3,9 +3,16 @@ import { pgTable, text, varchar, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const classes = pgTable("classes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const students = pgTable("students", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  rollNumber: text("roll_number"),
   className: text("class_name").notNull(),
 });
 
@@ -21,6 +28,11 @@ export const attendance = pgTable("attendance", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+export const insertClassSchema = createInsertSchema(classes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertStudentSchema = createInsertSchema(students).omit({
   id: true,
 });
@@ -30,6 +42,8 @@ export const insertAttendanceSchema = createInsertSchema(attendance).omit({
   timestamp: true,
 });
 
+export type InsertClass = z.infer<typeof insertClassSchema>;
+export type Class = typeof classes.$inferSelect;
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
 export type Student = typeof students.$inferSelect;
 export type InsertAttendance = z.infer<typeof insertAttendanceSchema>;
@@ -37,13 +51,3 @@ export type Attendance = typeof attendance.$inferSelect;
 
 export const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
 export type Prayer = typeof prayers[number];
-
-export const classes = [
-  "Grade 1",
-  "Grade 2", 
-  "Grade 3",
-  "Grade 4",
-  "Grade 5",
-  "Grade 6",
-] as const;
-export type ClassName = typeof classes[number];

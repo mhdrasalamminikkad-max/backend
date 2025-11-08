@@ -30,6 +30,21 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'firebase': ['firebase/app', 'firebase/firestore'],
+          'pdf': ['jspdf', 'jspdf-autotable'],
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+      },
+    },
+  },
+  optimizeDeps: {
+    include: ["firebase/app", "firebase/firestore", "jspdf", "jspdf-autotable"],
   },
   server: {
     fs: {
