@@ -6,7 +6,10 @@ let wss: WebSocketServer;
 const clients = new Set<WebSocket>();
 
 export function setupWebSocket(server: Server): void {
-  wss = new WebSocketServer({ server });
+  wss = new WebSocketServer({ 
+    server,
+    path: '/api/ws'
+  });
 
   wss.on('connection', (ws: WebSocket) => {
     clients.add(ws);

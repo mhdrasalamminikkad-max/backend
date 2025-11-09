@@ -9,12 +9,16 @@ import { queryClient } from './queryClient';
 const WS_URL = import.meta.env.VITE_WS_URL || (() => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   // Convert http:// to ws:// and https:// to wss://
+  let wsUrl: string;
   if (apiUrl.startsWith('https://')) {
-    return apiUrl.replace('https://', 'wss://');
+    wsUrl = apiUrl.replace('https://', 'wss://');
   } else if (apiUrl.startsWith('http://')) {
-    return apiUrl.replace('http://', 'ws://');
+    wsUrl = apiUrl.replace('http://', 'ws://');
+  } else {
+    wsUrl = 'ws://localhost:5000';
   }
-  return 'ws://localhost:5000';
+  // Add the WebSocket path
+  return `${wsUrl}/api/ws`;
 })();
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
