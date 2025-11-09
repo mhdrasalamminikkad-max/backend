@@ -109,7 +109,8 @@ export default function AttendanceList({ prayer, className, onBack }: Attendance
       console.log(`🔄 Deleting student with ID: ${studentId}`);
       
       // Get student name before deletion for logging
-      const students = getStudentsByClass(className);
+      const { getStudentsByClass } = await import("@/lib/offlineApi");
+      const students = await getStudentsByClass(className);
       const studentToDelete = students.find(s => s.id === studentId);
       const studentName = studentToDelete?.name || "Unknown";
       
@@ -130,7 +131,7 @@ export default function AttendanceList({ prayer, className, onBack }: Attendance
     onSuccess: async () => {
       // Refresh students immediately
       const { getStudentsByClass } = await import("@/lib/offlineApi");
-      const currentStudents = getStudentsByClass(className);
+      const currentStudents = await getStudentsByClass(className);
       queryClient.setQueryData(["students", className], currentStudents);
       
       // Invalidate queries
