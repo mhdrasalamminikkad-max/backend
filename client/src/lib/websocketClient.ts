@@ -5,20 +5,16 @@
 
 import { queryClient } from './queryClient';
 
-// WebSocket URL - use environment variable or construct from API URL
+// WebSocket URL - use environment variable or construct from current location
 const WS_URL = import.meta.env.VITE_WS_URL || (() => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  // Convert http:// to ws:// and https:// to wss://
-  let wsUrl: string;
-  if (apiUrl.startsWith('https://')) {
-    wsUrl = apiUrl.replace('https://', 'wss://');
-  } else if (apiUrl.startsWith('http://')) {
-    wsUrl = apiUrl.replace('http://', 'ws://');
-  } else {
-    wsUrl = 'ws://localhost:5000';
+  // In production (Replit/deployed), use the current page's protocol and host
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    return `${protocol}//${host}/api/ws`;
   }
-  // Add the WebSocket path
-  return `${wsUrl}/api/ws`;
+  // Fallback for local development
+  return 'ws://localhost:5000/api/ws';
 })();
 let ws: WebSocket | null = null;
 let reconnectAttempts = 0;
