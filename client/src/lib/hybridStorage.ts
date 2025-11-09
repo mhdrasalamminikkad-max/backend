@@ -156,7 +156,11 @@ export async function getLocalAttendance(): Promise<AttendanceRecord[]> {
       try {
         const records = await backendApi.getAttendance();
         console.log(`✅ Loaded ${records.length} attendance records from backend`);
-        return records;
+        // Ensure all records have timestamps
+        return records.map(r => ({
+          ...r,
+          timestamp: r.timestamp || new Date().toISOString()
+        }));
       } catch (error) {
         console.warn('⚠️ Backend fetch failed, using LocalStorage fallback:', error);
       }
@@ -200,9 +204,14 @@ export async function getLocalAttendanceByDateRange(startDate: string, endDate: 
     if (await isBackendAvailable()) {
       try {
         const allRecords = await backendApi.getAttendance();
-        return allRecords.filter(record => {
-          return record.date >= startDate && record.date <= endDate;
-        });
+        return allRecords
+          .map(r => ({
+            ...r,
+            timestamp: r.timestamp || new Date().toISOString()
+          }))
+          .filter(record => {
+            return record.date >= startDate && record.date <= endDate;
+          });
       } catch (error) {
         console.warn('⚠️ Backend fetch failed, using LocalStorage fallback:', error);
       }
@@ -224,7 +233,11 @@ export async function getLocalStudentAttendance(studentId: string): Promise<Atte
   try {
     if (await isBackendAvailable()) {
       try {
-        return await backendApi.getAttendance({ studentId });
+        const records = await backendApi.getAttendance({ studentId });
+        return records.map(r => ({
+          ...r,
+          timestamp: r.timestamp || new Date().toISOString()
+        }));
       } catch (error) {
         console.warn('⚠️ Backend fetch failed, using LocalStorage fallback:', error);
       }
@@ -248,7 +261,11 @@ export async function getLocalAttendanceByFilters(filters: {
   try {
     if (await isBackendAvailable()) {
       try {
-        return await backendApi.getAttendance(filters);
+        const records = await backendApi.getAttendance(filters);
+        return records.map(r => ({
+          ...r,
+          timestamp: r.timestamp || new Date().toISOString()
+        }));
       } catch (error) {
         console.warn('⚠️ Backend fetch failed, using LocalStorage fallback:', error);
       }
