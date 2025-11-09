@@ -28,15 +28,29 @@ export interface AttendanceRecord {
   timestamp: string;
 }
 
+// Cache backend availability to reduce checks
+let backendAvailableCache: boolean | null = null;
+let lastBackendCheck = 0;
+const BACKEND_CHECK_INTERVAL = 30000; // Check every 30 seconds
+
 // Check if backend is available
 async function isBackendAvailable(): Promise<boolean> {
+  const now = Date.now();
+  if (backendAvailableCache !== null && (now - lastBackendCheck) < BACKEND_CHECK_INTERVAL) {
+    return backendAvailableCache;
+  }
+  
   try {
     const response = await fetch('http://localhost:5000/api/attendance', {
       method: 'GET',
-      signal: AbortSignal.timeout(2000), // 2 second timeout
+      signal: AbortSignal.timeout(1000), // Reduced to 1 second for faster response
     });
-    return response.ok;
+    backendAvailableCache = response.ok;
+    lastBackendCheck = now;
+    return backendAvailableCache;
   } catch (error) {
+    backendAvailableCache = false;
+    lastBackendCheck = now;
     return false;
   }
 }
@@ -64,7 +78,7 @@ export async function saveAttendanceLocal(record: AttendanceRecord): Promise<voi
     }
     
     // Fallback to LocalStorage if backend unavailable
-    const existingRecords = getLocalAttendance();
+    const existingRecords = await getLocalAttendance();
     const recordIndex = existingRecords.findIndex(
       r => r.id === record.id || 
       (r.studentId === record.studentId && r.date === record.date && r.prayer === record.prayer)
