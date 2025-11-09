@@ -15,7 +15,9 @@ const INITIALIZED_KEY = 'caliph_initialized';
 // Check if backend is available
 async function isBackendAvailable(): Promise<boolean> {
   try {
-    const response = await fetch('http://localhost:5000/api/classes', {
+    // Use the current origin (works on Replit and localhost)
+    const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
+    const response = await fetch(`${apiUrl}/api/classes`, {
       method: 'GET',
       signal: AbortSignal.timeout(2000), // 2 second timeout
     });

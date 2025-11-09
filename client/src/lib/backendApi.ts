@@ -3,8 +3,8 @@
  * Simple API client for the local Node.js backend
  */
 
-// Get API base URL from environment or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Get API base URL from environment or use current origin (works on Replit and localhost)
+const API_BASE_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000');
 const BASE_URL = `${API_BASE_URL}/api`;
 
 // Types
