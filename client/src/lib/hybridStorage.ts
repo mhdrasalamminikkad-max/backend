@@ -109,7 +109,7 @@ export async function saveAttendanceBatch(records: AttendanceRecord[]): Promise<
     }
     
     // Fallback to LocalStorage
-    const existingRecords = getLocalAttendance();
+    const existingRecords = await getLocalAttendance();
     const existingMap = new Map(
       existingRecords.map(r => [`${r.studentId}-${r.date}-${r.prayer}`, r])
     );
